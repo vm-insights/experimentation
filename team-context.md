@@ -2,8 +2,8 @@
 
 ## About the Team
 
-- **Organisation:** HSBC — Asset Management
-- **Department:** Data & Analytics Office (DAO)
+- **Organisation:** 
+- **Department:** 
 - **Team:** Data Science
 - **Team Mission:** Solve business problems using AI, generate insights to drive business decisions, build BI dashboards, and deliver AI applications into production — with a current strategic focus on LLM-powered applications.
 
