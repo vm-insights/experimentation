@@ -1,0 +1,48 @@
+Redesign the Sprint Output Submission Form page with the following UI/UX fixes. Maintain HSBC branding (red/white color scheme) and all existing functionality.
+1. Team Selection — Make it the first step, not a hidden corner dropdown
+
+Move the team selector from the top-right corner to a full-width, prominent position directly below the page title
+Make it a clearly labeled step (e.g., "Step 1: Select Your Team / End-to-End Process") so users cannot miss it
+Consider using card-style selectors or a large full-width dropdown instead of a small corner dropdown
+Only reveal the rest of the form after a team is selected
+
+2. Unsaved Changes Alert — Convert from inline banner to a proper modal
+
+Replace the current inline red banner with a centered modal overlay with a dimmed backdrop
+The modal should clearly explain the consequence of switching teams (discarding unsaved work)
+Use clear action buttons: "Discard & Switch" (destructive, red) and "Cancel" (neutral)
+
+3. Error Handling — Fix the "Failed to load team data" message
+
+Add a "Retry" button next to the error message
+Include a brief user-friendly explanation (e.g., "We couldn't load your team data. Check your connection and try again.")
+Style it as a dismissible alert component, not just floating red text
+
+4. Remove conflicting state indicators
+
+Do not show two different team names simultaneously (dropdown vs "Currently editing" badge)
+Show only one clear indicator of which team the user is currently working in
+
+5. Improve tab navigation (Sprints / Meetings / Reading & Viewing)
+
+Add a clear bottom border or underline for the active tab
+Add more visual separation between the tabs and the content area below
+Ensure inactive tabs have hover states
+
+6. Improve form field clarity
+
+Visually tie each question label directly to its input field with tighter spacing
+Add placeholder text inside inputs to guide responses
+Group related fields with subtle card backgrounds or section dividers
+
+7. Fix the background
+
+Replace the mountain background image with a solid white or light gray background behind the form content area
+If the image must stay, add a solid white card/container with proper padding so text never overlaps the image
+
+8. Add a progress indicator
+
+Add a progress bar or step indicator showing which sprints have been completed and which are remaining
+Position it near the top of the form area so users always know where they stand
+
+Keep all existing form fields, sprint content, and submission logic intact. Focus on layout, hierarchy, readability, and error handling improvements.
