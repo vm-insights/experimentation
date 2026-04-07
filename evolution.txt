@@ -1,0 +1,334 @@
+import { useState } from "react";
+
+const SAMPLE_PROMPT = `You are an insight analyst for the HSBC Asset Management AI Transformation Programme.
+
+A team has submitted their Sprint 1b responses about "Understanding the Client." Your job is to extract a structured Client Evolution Map from their free-text answers.
+
+The team answered these three questions:
+1. Who is the client today, and does AI change who can be the client?
+2. What outcomes does the client need, and how will their expectations evolve with greater adoption of AI?
+3. As the client transforms with AI, how can we collaborate more closely, influence behaviours, and design for better outcomes?
+
+---
+TEAM NAME: {team_name}
+BUSINESS LINE: {business_line}
+
+SPRINT 1B RESPONSES:
+Q1: {response_q1}
+Q2: {response_q2}
+Q3: {response_q3}
+---
+
+Extract the following JSON structure. Be specific and grounded in what the team actually wrote. Infer only where clearly implied.
+
+{
+  "team_name": "",
+  "business_line": "",
+  "client_identity": {
+    "current": "Who is the primary client today?",
+    "emerging": "Who could become a client as AI changes the landscape?",
+    "future": "Who is the ultimate transformed client?",
+    "shift_summary": "One sentence describing the identity shift"
+  },
+  "outcome_expectations": {
+    "current": "What does the client need/expect today?",
+    "transitional": "What will they expect as AI adoption grows?",
+    "transformed": "What does the fully AI-enabled outcome look like?",
+    "shift_summary": "One sentence describing the outcome shift"
+  },
+  "collaboration_model": {
+    "current": "How does the team interact with the client today?",
+    "augmented": "How do AI-augmented touchpoints change this?",
+    "reimagined": "What does the fully reimagined relationship look like?",
+    "shift_summary": "One sentence describing the collaboration shift"
+  },
+  "transformation_depth": "incremental | evolutionary | radical",
+  "transformation_rationale": "Why this classification?",
+  "key_quote": "Most transformational sentence from their responses",
+  "risk_flag": "Any tension, gap, or concern spotted in their thinking"
+}
+
+Respond ONLY with the JSON object. No preamble, no markdown fences.`;
+
+const SAMPLE_DATA = {
+  team_name: "Listed Markets Distribution",
+  business_line: "Listed Markets",
+  client_identity: {
+    current: "Institutional investors and fund selectors at wealth platforms",
+    emerging: "End retail investors who bypass selectors via AI-powered self-service",
+    future: "AI agents acting on behalf of investors, making allocation decisions autonomously",
+    shift_summary: "From serving human gatekeepers to interfacing with autonomous AI decision-makers"
+  },
+  outcome_expectations: {
+    current: "Quarterly performance reports, factsheets, and periodic portfolio reviews",
+    transitional: "Real-time portfolio analytics, personalised commentary, and proactive risk alerts",
+    transformed: "Continuous, adaptive investment narratives tailored to each investor's goals and context",
+    shift_summary: "From static periodic reporting to living, personalised investment intelligence"
+  },
+  collaboration_model: {
+    current: "Scheduled meetings, email updates, and RFP responses",
+    augmented: "AI-generated briefs before meetings, automated RFP drafting, chatbot-first enquiries",
+    reimagined: "Always-on digital partnership where AI handles routine and humans focus on strategic dialogue",
+    shift_summary: "From calendar-driven touchpoints to continuous ambient collaboration"
+  },
+  transformation_depth: "radical",
+  transformation_rationale: "The team envisions entirely new client types (AI agents) and a fundamental shift from periodic human interaction to continuous machine-to-machine collaboration",
+  key_quote: "The fund selector may not be our client in five years — their AI will be",
+  risk_flag: "No mention of regulatory readiness for AI-agent clients or how compliance frameworks would adapt"
+};
+
+const DEPTH_CONFIG = {
+  incremental: { label: "Incremental", color: "#F59E0B", bg: "rgba(245,158,11,0.1)", desc: "Same client, slightly better service" },
+  evolutionary: { label: "Evolutionary", color: "#3B82F6", bg: "rgba(59,130,246,0.1)", desc: "Same client, meaningfully different value" },
+  radical: { label: "Radical", color: "#10B981", bg: "rgba(16,185,129,0.1)", desc: "New clients, new value chain" }
+};
+
+const DIMENSIONS = [
+  { key: "client_identity", label: "Client Identity", icon: "👤", stages: ["current", "emerging", "future"] },
+  { key: "outcome_expectations", label: "Outcome Expectations", icon: "🎯", stages: ["current", "transitional", "transformed"] },
+  { key: "collaboration_model", label: "Collaboration Model", icon: "🤝", stages: ["current", "augmented", "reimagined"] }
+];
+
+const STAGE_LABELS = {
+  current: "Today",
+  emerging: "Emerging",
+  future: "Future",
+  transitional: "Transitional",
+  transformed: "Transformed",
+  augmented: "AI-Augmented",
+  reimagined: "Reimagined"
+};
+
+export default function ClientEvolutionMap() {
+  const [activeTab, setActiveTab] = useState("map");
+  const [activeDimension, setActiveDimension] = useState(null);
+  const [data] = useState(SAMPLE_DATA);
+
+  const depth = DEPTH_CONFIG[data.transformation_depth] || DEPTH_CONFIG.incremental;
+
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "#0A0F1E",
+      fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif",
+      color: "#E2E8F0",
+      padding: "24px 20px",
+      boxSizing: "border-box"
+    }}>
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+          <div style={{
+            width: 8, height: 8, borderRadius: "50%",
+            background: depth.color,
+            boxShadow: `0 0 12px ${depth.color}80`
+          }} />
+          <span style={{ fontSize: 11, letterSpacing: 2.5, textTransform: "uppercase", color: "#64748B", fontWeight: 600 }}>
+            Client Evolution Map
+          </span>
+        </div>
+        <h1 style={{
+          fontSize: 26, fontWeight: 700, margin: "4px 0 6px",
+          background: "linear-gradient(135deg, #F8FAFC, #94A3B8)",
+          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
+        }}>
+          {data.team_name}
+        </h1>
+        <p style={{ fontSize: 13, color: "#64748B", margin: 0 }}>{data.business_line}</p>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: 4, marginBottom: 24, background: "#111827", borderRadius: 10, padding: 3 }}>
+        {[
+          { id: "map", label: "Evolution Map" },
+          { id: "prompt", label: "Extraction Prompt" }
+        ].map(tab => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+            flex: 1, padding: "10px 0", border: "none", borderRadius: 8, cursor: "pointer",
+            fontSize: 13, fontWeight: 600, transition: "all 0.2s",
+            background: activeTab === tab.id ? "#1E293B" : "transparent",
+            color: activeTab === tab.id ? "#F8FAFC" : "#64748B"
+          }}>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "map" ? (
+        <>
+          {/* Transformation Depth Badge */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 12,
+            padding: "14px 16px", borderRadius: 12, marginBottom: 24,
+            background: depth.bg, border: `1px solid ${depth.color}30`
+          }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 10,
+              background: `${depth.color}20`, display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 18, fontWeight: 800, color: depth.color
+            }}>
+              {depth.label[0]}
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: depth.color }}>{depth.label} Transformation</div>
+              <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>{depth.desc}</div>
+            </div>
+          </div>
+
+          {/* Evolution Dimensions */}
+          {DIMENSIONS.map((dim, di) => {
+            const dimData = data[dim.key];
+            const isExpanded = activeDimension === dim.key;
+            return (
+              <div key={dim.key} style={{ marginBottom: 16 }}>
+                <button onClick={() => setActiveDimension(isExpanded ? null : dim.key)} style={{
+                  width: "100%", textAlign: "left", border: "none", cursor: "pointer",
+                  padding: "16px", borderRadius: isExpanded ? "12px 12px 0 0" : 12,
+                  background: "#111827", color: "#E2E8F0", transition: "all 0.2s"
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 20 }}>{dim.icon}</span>
+                      <span style={{ fontSize: 14, fontWeight: 700 }}>{dim.label}</span>
+                    </div>
+                    <span style={{
+                      fontSize: 18, transition: "transform 0.2s",
+                      transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", color: "#64748B"
+                    }}>⌄</span>
+                  </div>
+                  {/* Shift summary always visible */}
+                  <p style={{ fontSize: 12, color: "#94A3B8", margin: "8px 0 0", lineHeight: 1.5, fontStyle: "italic" }}>
+                    {dimData.shift_summary}
+                  </p>
+                </button>
+
+                {isExpanded && (
+                  <div style={{
+                    background: "#111827", borderRadius: "0 0 12px 12px",
+                    padding: "0 16px 16px", borderTop: "1px solid #1E293B"
+                  }}>
+                    {/* Timeline visual */}
+                    <div style={{ position: "relative", paddingLeft: 20, paddingTop: 16 }}>
+                      {/* Vertical line */}
+                      <div style={{
+                        position: "absolute", left: 7, top: 16, bottom: 0, width: 2,
+                        background: `linear-gradient(to bottom, ${depth.color}60, ${depth.color}10)`
+                      }} />
+
+                      {dim.stages.map((stage, si) => (
+                        <div key={stage} style={{ position: "relative", marginBottom: si < 2 ? 20 : 0 }}>
+                          {/* Dot */}
+                          <div style={{
+                            position: "absolute", left: -17, top: 4,
+                            width: 10, height: 10, borderRadius: "50%",
+                            background: si === 2 ? depth.color : si === 1 ? `${depth.color}80` : "#334155",
+                            border: `2px solid ${si === 2 ? depth.color : "#1E293B"}`,
+                            boxShadow: si === 2 ? `0 0 10px ${depth.color}50` : "none"
+                          }} />
+                          <div style={{
+                            fontSize: 10, fontWeight: 700, textTransform: "uppercase",
+                            letterSpacing: 1.5, marginBottom: 4,
+                            color: si === 2 ? depth.color : si === 1 ? "#94A3B8" : "#64748B"
+                          }}>
+                            {STAGE_LABELS[stage]}
+                          </div>
+                          <div style={{
+                            fontSize: 13, lineHeight: 1.6, color: "#CBD5E1",
+                            padding: "8px 12px", borderRadius: 8,
+                            background: si === 2 ? `${depth.color}08` : "transparent",
+                            border: si === 2 ? `1px solid ${depth.color}20` : "1px solid transparent"
+                          }}>
+                            {dimData[stage]}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Key Quote */}
+          <div style={{
+            margin: "24px 0 16px", padding: "16px 18px",
+            borderRadius: 12, borderLeft: `3px solid ${depth.color}`,
+            background: "#111827"
+          }}>
+            <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 2, color: "#64748B", marginBottom: 8, fontWeight: 600 }}>
+              Key Quote
+            </div>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#E2E8F0", margin: 0, fontStyle: "italic" }}>
+              "{data.key_quote}"
+            </p>
+          </div>
+
+          {/* Risk Flag */}
+          {data.risk_flag && (
+            <div style={{
+              padding: "14px 16px", borderRadius: 12,
+              background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 14 }}>⚠️</span>
+                <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 2, color: "#EF4444", fontWeight: 700 }}>Risk Flag</span>
+              </div>
+              <p style={{ fontSize: 13, lineHeight: 1.6, color: "#FCA5A5", margin: 0 }}>
+                {data.risk_flag}
+              </p>
+            </div>
+          )}
+
+          {/* Rationale */}
+          <div style={{
+            marginTop: 16, padding: "14px 16px", borderRadius: 12,
+            background: "#111827"
+          }}>
+            <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 2, color: "#64748B", marginBottom: 8, fontWeight: 600 }}>
+              Classification Rationale
+            </div>
+            <p style={{ fontSize: 13, lineHeight: 1.6, color: "#94A3B8", margin: 0 }}>
+              {data.transformation_rationale}
+            </p>
+          </div>
+        </>
+      ) : (
+        /* Prompt Tab */
+        <div style={{
+          background: "#111827", borderRadius: 12, padding: 16,
+        }}>
+          <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 2, color: "#64748B", marginBottom: 6, fontWeight: 600 }}>
+            Copy this prompt — paste team responses into the placeholders
+          </div>
+          <p style={{ fontSize: 12, color: "#94A3B8", margin: "0 0 12px", lineHeight: 1.5 }}>
+            Replace <code style={{ color: depth.color, background: `${depth.color}15`, padding: "1px 5px", borderRadius: 4 }}>{"{team_name}"}</code>, <code style={{ color: depth.color, background: `${depth.color}15`, padding: "1px 5px", borderRadius: 4 }}>{"{business_line}"}</code>, and <code style={{ color: depth.color, background: `${depth.color}15`, padding: "1px 5px", borderRadius: 4 }}>{"{response_q1/q2/q3}"}</code> with the team's actual data, then run through Claude or your platform's LLM.
+          </p>
+          <pre style={{
+            fontSize: 11, lineHeight: 1.7, color: "#CBD5E1",
+            whiteSpace: "pre-wrap", wordBreak: "break-word",
+            background: "#0A0F1E", padding: 14, borderRadius: 8,
+            border: "1px solid #1E293B",
+            maxHeight: 420, overflowY: "auto"
+          }}>
+            {SAMPLE_PROMPT}
+          </pre>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(SAMPLE_PROMPT);
+            }}
+            style={{
+              marginTop: 12, width: "100%", padding: "12px",
+              background: depth.color, color: "#0A0F1E",
+              border: "none", borderRadius: 8, cursor: "pointer",
+              fontSize: 13, fontWeight: 700, letterSpacing: 0.5
+            }}
+          >
+            Copy Prompt to Clipboard
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
